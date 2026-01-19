@@ -1,0 +1,127 @@
+---
+title: "Predictive Analytics – Assignment 1"
+author: "Apratim Dey Tapadar"
+date: "2026-01-19"
+output: html_document
+---
+
+## Question 1
+Report the “class” of the data set. How many rows and columns are in this data set? What do the rows and columns represent?
+
+
+
+```{r}
+library(MASS)
+data(Boston)
+
+class(Boston)
+dim(Boston)
+```
+  The dataset contains 506 observations and 14 variables, indicating information collected across multiple Boston suburbs with several socio-economic and environmental attributes. Each row corresponds to a suburb of Boston, while each column represents a specific housing, environmental, or socio-economic variable. This suggests that the dataset is sufficiently large to capture variability across suburbs, making it suitable for exploratory and predictive analysis. From a predictive analytics perspective, the presence of multiple explanatory variables allows us to examine how different factors jointly influence housing prices.
+
+## Question 2
+Create a smaller data set with the variables median value of owner-occupied
+homes, per capita crime rate, nitrogen oxides concentration, proportion of
+blacks and percentage of lower status of the population. Choosing median
+value of owner occupied homes as the response and the rest as the pre-
+dictors, make scatter plots of the response versus each predictor. Present
+the scatter plots in different panels of the same graph. Comment on your
+findings.
+
+
+```{r}
+small_boston = Boston[,c("medv","crim","nox","black","lstat")]
+par(mfrow=c(2,2))
+
+plot(small_boston$crim,small_boston$medv,
+     xlab="Crime rate",
+     ylab="Median value of homes",
+     main="MEDV vs CRIM")
+
+plot(small_boston$nox,small_boston$medv,
+     xlab="NOX concentration",
+     ylab="Median value of homes",
+     main="MEDV vs NOX")
+
+plot(small_boston$black,small_boston$medv,
+     xlab="Black Population index",
+     ylab="Median value of homes",
+     main="MEDV vs BLACK")
+
+plot(small_boston$lstat,small_boston$medv,
+     xlab="Lower status population(%)",
+     ylab="Median value of homes",
+     main="MEDV vs LSTAT")
+
+
+
+```
+MEDV vs CRIM:
+Clear negative relationship → higher crime rate corresponds to lower house values.
+
+MEDV vs NOX:
+Strong negative association → polluted areas tend to have cheaper housing.
+
+MEDV vs BLACK:
+Weak and nonlinear relationship → not a strong direct predictor.
+
+MEDV vs LSTAT:
+Very strong negative relationship → suburbs with higher lower-status population have much lower house prices.
+
+
+Conclusion:
+The scatter plots indicate strong negative associations between median house value and lstat, crim, and nox. Among these, lstat exhibits the strongest and most consistent relationship, followed by crim and nox, while black shows a comparatively weaker association.
+
+## Question 3 
+Which suburb of Boston has lowest median value of owner-occupied homes? What are the values of the other predictors mentioned in (2), for that suburb. How do these values compare to the overall ranges for those predictors? Comment on your findings. Hint: Mention which percentile these values belong to.
+
+
+```{r}
+min_index = which.min(Boston$medv)
+
+
+Boston[min_index, c("medv", "crim", "nox", "black", "lstat")]
+
+
+sapply(
+  c("crim", "nox", "black", "lstat"),
+  function(var) {
+    ecdf(Boston[[var]])(Boston[min_index, var])
+  }
+)
+
+
+```
+Crime → 98th percentile (extremely high)
+
+NOX → 92nd percentile (very polluted)
+
+BLACK → low percentile
+
+LSTAT → 97th percentile (very high lower-status population)
+
+The suburb with the lowest median housing value lies in the upper percentiles for crime rate, nitrogen oxide concentration, and lower-status population, while belonging to a lower percentile for the black population index. This indicates that extreme socio-economic disadvantage and environmental pollution are strongly associated with depressed housing prices. From a predictive analytics perspective, such extreme observations may have a strong influence on model estimates and highlight structurally disadvantaged regions.
+
+
+##v Question 4
+Does any suburb of Boston stand out for having notably high crime rates, tax rates, or pupil–teacher ratios? Hint: Use a boxplot to detect any outliers. If so, identify the suburbs that show the outlier values.
+
+```{r}
+par(mfrow = c(1, 3))
+
+boxplot(Boston$crim, main = "Crime Rate", col = "lightblue")
+boxplot(Boston$tax, main = "Tax Rate", col = "lightgreen")
+boxplot(Boston$ptratio, main = "Pupil-Teacher Ratio", col = "lightpink")
+
+```
+
+
+
+The boxplot analysis indicates the presence of several suburbs with exceptionally high crime rates, as evidenced by multiple outliers in the crime variable. In contrast, no statistical outliers are detected for the tax rate, suggesting that although tax values may be right-skewed, they do not exceed the boxplot outlier threshold. However, the pupil–teacher ratio exhibits a number of outlier suburbs, indicating that certain towns experience unusually high levels of classroom overcrowding.
+
+```{r}
+which(Boston$crim %in% boxplot.stats(Boston$crim)$out)
+which(Boston$tax %in% boxplot.stats(Boston$tax)$out)
+which(Boston$ptratio %in% boxplot.stats(Boston$ptratio)$out)
+
+```
